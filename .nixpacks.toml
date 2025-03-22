@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["python312", "pip"]
+
+[phases.install]
+cmds = ["pip install -r server/requirements.txt"]
+
+[start]
+cmd = "python server/server.py"
