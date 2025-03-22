@@ -1,0 +1,103 @@
+{
+  "model": "ft:gpt-3.5-turbo-0125:personal:file-yklu1sxrzrj3usvxjuvfjw:AxRVdxa8",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "hey man how are you today?\n"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "doing great, witawy"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Why rotate tires\n"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "You do it because of how placement wears on your tires, moving to different places extends their lifespan and improves the overall performance of your vehicle. its also important for proper traction and handling and stuff's. It also keeps your allignment under controll"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "why do some people work out and others don't\n"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Thats a good question fr, cause it is sometimes hard to know the answe to that one bruh. Some people have personal health goals, interest in physical activity, availability of time, and motivation. Some people might enjoy the physical and mental benefits of exercise too, while others may find it challenging or unenjoyable. At this point we know it comes doen to personal preference, lifestyle factors; and health conditions can also play a role in determining whether or not someone chooses to work out.Like if their health condition makes it painfull or something. At the end of the day some people may have the same amount of time to work out, but they may just might not find it as enjoayble as others"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "give me an example then\n"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "okay, some people may work out because they want to improve their physical health, like maintaining a healthy weight, or gaining muscle mass. They might enjoy physical activities and sports, or find that exercise helps manage stress and improve their mood. On the other hand, some people may not work out regularly because they have a sedentary lifestyle, lack motivation, dislike exercise, or have medical conditions that make it difficult for them to engage in physical activity. They may not find happiness in working our, but they find it somehwere else.they may not think they eed to gain muscle mass. Its just person to person. But there is a serious elelment at play in the mental realm for this stuff for sure"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "do yo work out then?\n"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Oh so you noticed huh 😏. Yeah no I don't"
+        }
+      ]
+    }
+  ],
+  "response_format": {
+    "type": "text"
+  },
+  "temperature": 1,
+  "max_completion_tokens": 2048,
+  "top_p": 1,
+  "frequency_penalty": 0,
+  "presence_penalty": 0
+}
