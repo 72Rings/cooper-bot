@@ -1,5 +1,11 @@
 [phases.setup]
 nixPkgs = ["python312"]
 
+[phases.install]
+cmds = []
+
+[phases.build]
+cmds = []
+
 [start]
 cmd = "python3 server/server.py"
