@@ -9,3 +9,6 @@ cmds = []
 
 [start]
 cmd = "python3 server/server.py"
+
+[variables]
+NIXPACKS_PYTHON_REQUIREMENTS_PATH = "server/requirements.txt"
