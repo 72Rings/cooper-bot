@@ -136,7 +136,7 @@ except Exception as e:
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)  # Enable CORS for frontend requests
+CORS(app, resources={r"/*": {"origins": "*"}})
 print("✅ Flask server initialized.")
 
 # OpenAI embedding function
