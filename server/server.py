@@ -136,7 +136,7 @@ except Exception as e:
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, supports_credentials=True, origins=["http://localhost:3000", "http://localhost:3005", "https://cooper-bot-production.up.railway.app"])
 print("✅ Flask server initialized.")
 
 # OpenAI embedding function
