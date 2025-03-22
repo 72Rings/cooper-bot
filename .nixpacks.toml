@@ -1,11 +1,14 @@
+[variables]
+NIXPACKS_PYTHON_REQUIREMENTS_PATH = "server/requirements.txt"
+
 [phases.setup]
-nixPkgs = ["python312", "pip"]
+nixPkgs = ["python312", "python312Packages.pip"]
 
 [phases.install]
-cmds = ["python3 -m pip install -r server/requirements.txt"]
+cmds = ["pip install -r server/requirements.txt"]
 
 [start]
-cmd = "python3 server/server.py"
+cmd = "python server/server.py"
 
 [build]
 language = "python"
