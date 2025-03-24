@@ -136,7 +136,7 @@ except Exception as e:
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app, supports_credentials=True, origins=["http://localhost:3000", "http://localhost:3005", "https://cooper-bot-production.up.railway.app"])
+CORS(app, resources={r"/chat": {"origins": "*"}}, supports_credentials=True)
 print("✅ Flask server initialized.")
 
 # OpenAI embedding function
@@ -211,10 +211,8 @@ def query_openai(user_question, retrieved_context, match_scores):
         print(f"❌ OpenAI Error: {e}")
         return "I encountered an issue generating a response."
 
-# Flask API Route
 @app.route('/chat', methods=['POST'])
 def chat():
-    """Handles user queries, retrieves data from Pinecone, and sends response via OpenAI."""
     try:
         data = request.get_json()
         print("📩 Received request data:", data)
@@ -229,11 +227,16 @@ def chat():
         retrieved_context, match_scores = retrieve_relevant_qa(user_question)
         bot_response = query_openai(user_question, retrieved_context, match_scores)
 
-        return jsonify({"response": bot_response})
+        response = jsonify({"response": bot_response})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "POST")
+        return response
 
     except Exception as e:
         print(f"❌ Error processing request: {e}")
         return jsonify({"error": "Internal server error"}), 500
+
 
 if __name__ == "__main__":
     print("🚀 Starting Flask Server on port 5000...")
