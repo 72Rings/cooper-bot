@@ -2,57 +2,58 @@ import os
 import logging
 import json
 import numpy as np
+import aiohttp
+import asyncio
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pinecone import Pinecone
-import openai
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-# Load API Keys
+# API Keys
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-
-if not OPENAI_API_KEY or not PINECONE_API_KEY:
-    logging.error("Missing OPENAI_API_KEY or PINECONE_API_KEY environment variable.")
-    raise ValueError("API keys not set in environment variables.")
-
-# Initialize OpenAI client
-client = openai.OpenAI(api_key=OPENAI_API_KEY)
-
-# Initialize Pinecone client
-pc = Pinecone(api_key=PINECONE_API_KEY)
 INDEX_NAME = "cooper-bot-index"
 
-if INDEX_NAME not in pc.list_indexes().names():
-    logging.error(f"Pinecone index '{INDEX_NAME}' does not exist.")
-    raise ValueError(f"Pinecone index '{INDEX_NAME}' does not exist.")
+if not OPENAI_API_KEY or not PINECONE_API_KEY:
+    raise ValueError("Missing environment variables for OpenAI or Pinecone")
 
+# Pinecone Setup
+pc = Pinecone(api_key=PINECONE_API_KEY)
+if INDEX_NAME not in pc.list_indexes().names():
+    raise ValueError(f"Pinecone index '{INDEX_NAME}' does not exist.")
 index = pc.Index(INDEX_NAME)
 
-# Initialize Flask app
+# Flask App
 app = Flask(__name__)
 CORS(app)
 
+# Async OpenAI Embedding
+async def get_embedding(text):
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "text-embedding-3-small",
+        "input": [text]
+    }
 
-# OpenAI embedding function
-def get_embedding(text):
     try:
-        response = client.embeddings.create(
-            model="text-embedding-3-small",
-            input=[text]
-        )
-        return response.data[0].embedding
+        async with aiohttp.ClientSession() as session:
+            async with session.post("https://api.openai.com/v1/embeddings", headers=headers, json=payload) as resp:
+                result = await resp.json()
+                return result["data"][0]["embedding"]
     except Exception as e:
-        logging.error(f"Error generating embedding: {e}")
+        logging.error(f"❌ Embedding Error: {e}")
         return None
 
-
-# Query Pinecone
-def retrieve_relevant_qa(query_text, top_k=3):
-    logging.info(f"Retrieving info for: {query_text}")
-    embedding = get_embedding(query_text)
+# Pinecone Retrieval
+async def retrieve_relevant_qa(query_text, top_k=3):
+    logging.info(f"🔍 Retrieving info for: {query_text}")
+    embedding = await get_embedding(query_text)
     if embedding is None:
         return [], []
 
@@ -67,37 +68,43 @@ def retrieve_relevant_qa(query_text, top_k=3):
                 scores.append(match.get("score", 0))
         return context, scores
     except Exception as e:
-        logging.error(f"Pinecone Query Error: {e}")
+        logging.error(f"❌ Pinecone Query Error: {e}")
         return [], []
 
-
-# OpenAI chat completion
-def query_openai(user_question, retrieved_context):
-    context_str = "\n".join(retrieved_context) or "No relevant info found."
-    system_message = f"""
+# Async OpenAI Chat
+async def query_openai(user_question, context_lines):
+    prompt = f"""
 You are Cooper Bot, trained to replicate Cooper Fruth's tone, humor, and conversational style.
 
 Below are relevant pieces of information retrieved from past conversations:
 
-{context_str}
+{'\n'.join(context_lines) or "No relevant info found."}
 
 Now, answer the user's question in Cooper's natural tone and style.
 User Question: {user_question}
 """.strip()
 
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "model": "gpt-4-turbo",
+        "messages": [{"role": "system", "content": prompt}],
+        "temperature": 0.5
+    }
+
     try:
-        response = client.chat.completions.create(
-            model="gpt-4-turbo",
-            messages=[{"role": "system", "content": system_message}],
-            temperature=0.5
-        )
-        return response.choices[0].message.content.strip()
+        async with aiohttp.ClientSession() as session:
+            async with session.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload) as resp:
+                result = await resp.json()
+                return result["choices"][0]["message"]["content"].strip()
     except Exception as e:
-        logging.error(f"OpenAI Chat Error: {e}")
+        logging.error(f"❌ OpenAI Chat Error: {e}")
         return "I encountered an issue generating a response."
 
-
-# Flask route
+# Async Flask route using asyncio.run
 @app.route("/chat", methods=["POST"])
 def chat():
     try:
@@ -106,18 +113,20 @@ def chat():
             return jsonify({"error": "Missing 'question' in request."}), 400
 
         user_question = data["question"].strip()
-        logging.info(f"Received question: {user_question}")
+        logging.info(f"👤 Received question: {user_question}")
 
-        retrieved_context, match_scores = retrieve_relevant_qa(user_question)
-        bot_response = query_openai(user_question, retrieved_context)
+        async def process():
+            context, _ = await retrieve_relevant_qa(user_question)
+            return await query_openai(user_question, context)
 
-        return jsonify({"response": bot_response})
+        response_text = asyncio.run(process())
+        return jsonify({"response": response_text})
+
     except Exception as e:
-        logging.error(f"Error processing request: {e}")
+        logging.error(f"❌ Server Error: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
-
+# Run app
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
