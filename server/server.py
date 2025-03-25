@@ -114,6 +114,7 @@ from pinecone import Pinecone
 import logging
 
 logging.basicConfig(level=logging.ERROR)
+
 # Load API Keys
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
@@ -237,8 +238,8 @@ def chat():
         return response
 
     except Exception as e:
-        print(f"❌ Error processing request: {e}")
-        return jsonify({"error": "Internal server error"}), 500
+        logging.error(f"❌ OpenAI Error: {e}")
+        return "I encountered an issue generating a response."
 
 
 if __name__ == "__main__":
