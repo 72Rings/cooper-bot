@@ -89,7 +89,7 @@ User Question: {user_question}
         response = client.chat.completions.create(
             model="gpt-4-turbo",
             messages=[{"role": "system", "content": system_message}],
-            temperature=0.7
+            temperature=0.5
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
@@ -118,4 +118,6 @@ def chat():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+
