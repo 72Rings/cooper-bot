@@ -111,7 +111,9 @@ import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pinecone import Pinecone
+import logging
 
+logging.basicConfig(level=logging.ERROR)
 # Load API Keys
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
@@ -208,12 +210,13 @@ def query_openai(user_question, retrieved_context, match_scores):
         print("✅ OpenAI Response Generated.")
         return response.choices[0].message.content.strip()
     except Exception as e:
-        print(f"❌ OpenAI Error: {e}")
+        logging.error(f"❌ OpenAI Error: {e}")
         return "I encountered an issue generating a response."
 
 @app.route('/chat', methods=['POST'])
 def chat():
     try:
+        
         data = request.get_json()
         print("📩 Received request data:", data)
 
