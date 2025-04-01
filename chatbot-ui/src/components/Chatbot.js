@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import axios from "axios";
 
-const API_URL = "https://cooper-bot-production.up.railway.app/chat";
+const API_URL = "https://confident-flexibility-production.up.railway.app/chat";
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([]);

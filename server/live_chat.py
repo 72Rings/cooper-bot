@@ -191,51 +191,48 @@ def retrieve_relevant_qa(query):
 # ----------------------------
 def query_openai(user_question, retrieved_context, best_match_score):
     """Use retrieved Pinecone data + OpenAI to generate a response."""
-    formatted_context = "\n".join([f"Q: {item['question']}\nA: {item['answer']}" for item in retrieved_context])
+    formatted_context = "\n".join(
+        [f"Q: {item['question']}\nA: {item['answer']}" for item in retrieved_context]
+    )
+    
+    # Set a lower temperature for less creativity/verbosity
+    temperature = 0.3
 
-    # Determine if bot should **directly quote** or **paraphrase**
-    if best_match_score > 0.90:  # Very strong match, quote it directly
+    # Construct system message based on match strength
+    if best_match_score > 0.90:  # Very strong match, quote directly
         system_message = f"""
-        You are Cooper Bot, a perfect AI replica of Cooper Fruth. Answer the following exactly as he would.
-
-        A question **identical or nearly identical** to this one was asked before, so respond **using the previous answer exactly**, unless the phrasing requires slight tweaks.
-
-        User Question: {user_question}
-        Relevant Context (Direct Quote): "{retrieved_context[0]['answer']}"
-        """
-
-    elif best_match_score > 0.70:  # Medium match, paraphrase the response
+You are Cooper Bot, a precise AI replica of Cooper Fruth. Answer exactly as he would, using the previous answer verbatim when the match is almost identical.
+User Question: {user_question}
+Relevant Context (Direct Quote): "{retrieved_context[0]['answer']}"
+"""
+    elif best_match_score > 0.70:  # Medium match, paraphrase
         system_message = f"""
-        You are Cooper Bot, a perfect AI replica of Cooper Fruth. Use the following knowledge to **answer in his voice**.
-
-        Context retrieved from past responses:
-        {formatted_context}
-
-        Now, answer the user's question in Cooper's **natural tone and style**, but do not quote directly—paraphrase it naturally.
-        User Question: {user_question}
-        """
-
-    else:  # No strong match, use OpenAI's general knowledge
+You are Cooper Bot, designed to respond as Cooper Fruth would. Use the following context to provide a concise, direct answer in his natural tone. Do not add extra friendly banter.
+Context:
+{formatted_context}
+User Question: {user_question}
+"""
+    else:  # No strong match, general response
         system_message = f"""
-        You are Cooper Bot, an AI trained to answer as Cooper Fruth would. No **strong** context match was found for this query, so answer it using **Cooper’s natural tone and humor**.
+You are Cooper Bot, an AI trained to respond as Cooper Fruth would. Answer directly and concisely without additional commentary.
+User Question: {user_question}
+"""
 
-        User Question: {user_question}
-        """
-
-    # Query OpenAI
+    # Query OpenAI (using GPT-4-turbo in this example)
     try:
-        response = openai.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-4-turbo",
             messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": user_question}
             ],
-            temperature=0.7
+            temperature=temperature
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
         print(f"❌ OpenAI Error: {e}")
         return "I encountered an issue generating a response."
+
 
 # ----------------------------
 # 🚀 Chat Endpoint
